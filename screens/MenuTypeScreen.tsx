@@ -5,34 +5,47 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-  Image,
   ImageBackground,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 
+const CARD_WIDTH = (Dimensions.get('window').width - 48) / 2;
+
+// ✅ Fixed image map with valid paths
+const imageMap: Record<string, any> = {
+  'download.jpeg': require('../assets/images/download.jpeg'),
+  'istockphoto-1400194993-612x612.jpg': require('../assets/images/istockphoto-1400194993-612x612.jpg'),
+  'restaurant-bg.jpg': require('../assets/images/istockphoto-1400194993-612x612.jpg'), // background image
+};
+
+// ✅ Menu items with image keys only
 const menuTypes = [
-//   {
-//     id: '1',
-//     name: 'Lunch',
-//     subtitle: 'Served until 4PM',
-//     image: require('../assets/images/downl/oad.jpeg'),
-//   },
+  {
+    id: '1',
+    name: 'Lunch',
+    subtitle: 'Served until 4PM',
+    image: 'download.jpeg',
+  },
   {
     id: '2',
     name: 'Dinner',
     subtitle: 'Evening specials',
-    image: 'assets/images/istockphoto-1400194993-612x612.jpg',
+    image: 'istockphoto-1400194993-612x612.jpg',
   },
   {
     id: '3',
     name: 'Coffee',
     subtitle: 'Hot & Cold drinks',
-    image: 'assets/images/download.jpeg',
+    image: 'download.jpeg',
+  },
+  {
+    id: '4',
+    name: 'Breakfast',
+    subtitle: 'Start your day right',
+    image: 'download.jpeg', // Reusing download.jpeg
   },
 ];
-
-const CARD_WIDTH = (Dimensions.get('window').width - 48) / 2;
 
 const MenuTypeScreen = () => {
   const navigation = useNavigation<any>();
@@ -44,7 +57,7 @@ const MenuTypeScreen = () => {
   const renderItem = ({ item }: any) => (
     <TouchableOpacity onPress={() => handleSelect(item.name)} style={styles.cardWrapper}>
       <ImageBackground
-        source={{ uri: item.image }}
+        source={imageMap[item.image]}
         style={styles.card}
         imageStyle={styles.cardImage}
         blurRadius={1}
@@ -59,9 +72,9 @@ const MenuTypeScreen = () => {
 
   return (
     <ImageBackground
-      source={{ uri: 'assets/images/download.jpeg' }}
+      source={imageMap['restaurant-bg.jpg']}
       style={styles.background}
-      blurRadius={3}
+      resizeMode="cover"
     >
       <View style={styles.overlay}>
         <Text style={styles.header}>Choose a Menu</Text>
@@ -81,12 +94,14 @@ const MenuTypeScreen = () => {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
+    width: '100%',
+    height: '100%',
   },
   overlay: {
     flex: 1,
     paddingTop: 60,
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 0.35)', // moderate fade
   },
   header: {
     fontSize: 28,
