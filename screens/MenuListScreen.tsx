@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   FlatList,
@@ -6,52 +6,58 @@ import {
   Text,
   ImageBackground,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
-import Toast from 'react-native-root-toast';
-import MenuItemCard from '../components/MenuItemCard';
-import { useCart } from '../contexts/CartContext';
-import { useFavorites } from '../contexts/FavoritesContext';
+import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
+import MenuItemCard from '../components/MenuItemCard';
+import { useFavorites } from '../contexts/FavoritesContext';
 
-const sharedImage = require('../assets/images/download.jpeg');
+// ✅ Use background image if you want
 const backgroundImage = require('../assets/images/istockphoto-1400194993-612x612.jpg');
 
-const mockData: Record<string, any[]> = {
-  Breakfast: [
-    { id: '1', name: 'Pancakes', description: 'Fluffy pancakes with maple syrup and fruit.', price: '€5.99', image: sharedImage },
-    { id: '2', name: 'Omelette', description: 'Cheese omelette with herbs and toast.', price: '€4.50', image: sharedImage },
-    { id: '3', name: 'French Toast', description: 'Cinnamon toast topped with strawberries.', price: '€6.25', image: sharedImage },
-    { id: '4', name: 'Breakfast Bowl', description: 'Granola, yogurt, and seasonal fruit.', price: '€5.00', image: sharedImage },
-  ],
-  Lunch: [
-    { id: '1', name: 'Grilled Chicken Sandwich', description: 'With fries and coleslaw.', price: '€8.99', image: sharedImage },
-    { id: '2', name: 'Caesar Salad', description: 'Romaine, croutons, parmesan.', price: '€7.50', image: sharedImage },
-    { id: '3', name: 'Club Sandwich', description: 'Triple-layered with chicken and bacon.', price: '€9.25', image: sharedImage },
-    { id: '4', name: 'Tomato Soup', description: 'With garlic bread.', price: '€6.75', image: sharedImage },
-  ],
-  Dinner: [
-    { id: '1', name: 'Steak & Potatoes', description: 'Grilled steak with roasted potatoes.', price: '€14.99', image: sharedImage },
-    { id: '2', name: 'Spaghetti Bolognese', description: 'Pasta with meat sauce.', price: '€11.50', image: sharedImage },
-    { id: '3', name: 'Grilled Salmon', description: 'With lemon butter sauce.', price: '€13.25', image: sharedImage },
-    { id: '4', name: 'Veggie Stir-Fry', description: 'Mixed vegetables in soy glaze.', price: '€10.00', image: sharedImage },
-  ],
-  Coffee: [
-    { id: '1', name: 'Espresso', description: 'Strong and bold shot of coffee.', price: '€2.00', image: sharedImage },
-    { id: '2', name: 'Cappuccino', description: 'Espresso with steamed milk and foam.', price: '€2.75', image: sharedImage },
-    { id: '3', name: 'Iced Latte', description: 'Chilled espresso with milk and ice.', price: '€3.50', image: sharedImage },
-    { id: '4', name: 'Mocha', description: 'Coffee with chocolate and whipped cream.', price: '€3.75', image: sharedImage },
-  ],
-};
+// 🟨 Replace this with your machine's local IP if testing on device
+const API_URL = 'http://192.168.235.150:1337/api/menus?populate=image';
 
 const MenuListScreen = ({ route, navigation }: any) => {
   const category = route?.params?.category;
-  const items = mockData[category] || [];
-
   const { toggleFavorite, isFavorite } = useFavorites();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchMenuItems = async () => {
+    try {
+      const res = await axios.get(API_URL);
+      const allItems = res.data.data;
+
+      const filteredItems = allItems
+        .filter((item: any) => item.category === category || item.category === category?.trim())
+        .map((item: any) => {
+          const imageUrl = item.image?.formats?.small?.url || item.image?.url;
+          return {
+            id: item.id.toString(),
+            name: item.name,
+            description: item.description,
+            price: `€${parseFloat(item.price).toFixed(2)}`,
+            category: item.category,
+            image: { uri: `http://10.70.8.71:1337${imageUrl}` },
+          };
+        });
+
+      setItems(filteredItems);
+    } catch (err) {
+      console.error('Failed to fetch menu items:', err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMenuItems();
+  }, []);
 
   const renderItem = ({ item }: any) => {
     const favorite = isFavorite(item.id);
-
     return (
       <View style={styles.card}>
         <View style={styles.cardContent}>
@@ -70,6 +76,8 @@ const MenuListScreen = ({ route, navigation }: any) => {
       </View>
     );
   };
+
+  if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color="#e74c3c" />;
 
   return (
     <ImageBackground source={backgroundImage} style={styles.background} resizeMode="cover">

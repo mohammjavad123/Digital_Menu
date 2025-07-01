@@ -1,46 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  Pressable,
   ImageBackground,
 } from 'react-native';
 import { useFavorites } from '../contexts/FavoritesContext';
-import { useCart } from '../contexts/CartContext';
-import MenuItemModal from '../components/MenuItemModal';
 import MenuItemCard from '../components/MenuItemCard';
-import Toast from 'react-native-root-toast';
+import { useNavigation } from '@react-navigation/native';
 
 const backgroundImage = require('../assets/images/istockphoto-1400194993-612x612.jpg');
 
 const FavoritesScreen = () => {
-  const { favorites, toggleFavorite } = useFavorites();
-  const { addToCart } = useCart();
-
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
+  const { favorites } = useFavorites();
+  const navigation = useNavigation();
 
   const handlePress = (item: any) => {
-    setSelectedItem(item);
-    setModalVisible(true);
-  };
-
-  const closeModal = () => {
-    setSelectedItem(null);
-    setModalVisible(false);
-  };
-
-  const handleOrder = (item: any) => {
-    addToCart(item);
-    Toast.show(`${item.name} added to cart 🛒`, {
-      duration: Toast.durations.SHORT,
-      position: Toast.positions.BOTTOM,
-      backgroundColor: '#333',
-      textColor: '#fff',
-    });
-    closeModal();
+    navigation.navigate('ItemDetail', { item });
   };
 
   const renderItem = ({ item }: any) => (
@@ -59,15 +36,6 @@ const FavoritesScreen = () => {
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.list}
-          />
-        )}
-
-        {selectedItem && (
-          <MenuItemModal
-            visible={modalVisible}
-            item={selectedItem}
-            onClose={closeModal}
-            onOrder={handleOrder}
           />
         )}
       </View>

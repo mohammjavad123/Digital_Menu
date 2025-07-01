@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,37 +9,100 @@ import {
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AirbnbRating } from 'react-native-ratings';
+import StarRating from 'react-native-star-rating-widget';
 import { useCart } from '../contexts/CartContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 
+const SERVER_URL = 'http://192.168.235.150:1337';
+
 const MenuItemModal = ({ route, navigation }: any) => {
-  const { item } = route.params;
+  const item = route?.params?.item;
+  if (!item) return <Text>Item not found</Text>;
+
   const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
 
   const [quantity, setQuantity] = useState(1);
   const [userComment, setUserComment] = useState('');
-  const [submittedComments, setSubmittedComments] = useState<string[]>([]);
   const [userRating, setUserRating] = useState(4);
+  const [reviews, setReviews] = useState<any[]>([]);
 
   const favorite = isFavorite(item.id);
+
+  useEffect(() => {
+    fetch(`${SERVER_URL}/api/reviews?filters[menu][id][$eq]=${item.id}&populate=*`)
+      .then(res => res.json())
+      .then(data => {
+        console.log("Fetched reviews:", data?.data);
+        setReviews(data?.data || []);
+      })
+      .catch(err => console.error('Failed to fetch reviews:', err));
+  }, [item.id]);
 
   const handleAddToCart = () => {
     addToCart({ ...item, quantity });
     navigation.goBack();
   };
 
-  const handleCommentSubmit = () => {
-    if (userComment.trim()) {
-      setSubmittedComments(prev => [userComment.trim(), ...prev.slice(0, 9)]);
-      setUserComment('');
+  const handleCommentSubmit = async () => {
+    if (!userComment.trim()) return;
+
+    const menuId = item?.id || item?.menu?.id;
+    if (!menuId) {
+      console.error("❌ Cannot submit review: Menu ID is missing.");
+      return;
+    }
+
+    const payload = {
+      data: {
+        text: userComment.trim(),
+        rating: Math.round(userRating),
+        menu: {
+          connect: [menuId],
+        },
+      },
+    };
+
+    try {
+      const res = await fetch(`${SERVER_URL}/api/reviews`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+      console.log("✅ Submit response:", json);
+
+      const newReview = json?.data || json;
+      if (newReview?.id) {
+        setReviews(prev => [newReview, ...prev]);
+        setUserComment('');
+      } else {
+        console.warn('⚠️ Unexpected response from Strapi:', json);
+      }
+    } catch (error) {
+      console.error('❌ Failed to submit review:', error);
     }
   };
 
+  const averageRating =
+    reviews.length > 0
+      ? (
+          reviews.reduce(
+            (sum, r) => sum + (r?.rating ?? 0),
+            0
+          ) / reviews.length
+        ).toFixed(1)
+      : 'N/A';
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Image source={item.image} style={styles.image} />
+      <Image
+        source={{ uri: `${SERVER_URL}${item?.image?.url}` }}
+        style={styles.image}
+      />
 
       <View style={styles.content}>
         <View style={styles.headerRow}>
@@ -54,31 +117,6 @@ const MenuItemModal = ({ route, navigation }: any) => {
         </View>
 
         <Text style={styles.description}>{item.description}</Text>
-
-        <View style={styles.tagsRow}>
-          {item.tags?.map((tag: string, idx: number) => (
-            <View key={idx} style={styles.tag}>
-              <Text style={styles.tagText}>{tag}</Text>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.subheading}>Ingredients</Text>
-          <Text style={{ color: '#444' }}>{item.ingredients?.join(', ') || 'N/A'}</Text>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.subheading}>Rating</Text>
-          <AirbnbRating
-            defaultRating={userRating}
-            size={20}
-            showRating={false}
-            onFinishRating={setUserRating}
-            starContainerStyle={{ alignSelf: 'flex-start' }}
-          />
-          <Text style={{ marginTop: 6, color: '#555' }}>Your rating: {userRating}/5</Text>
-        </View>
 
         <View style={styles.section}>
           <Text style={styles.subheading}>Quantity</Text>
@@ -99,11 +137,22 @@ const MenuItemModal = ({ route, navigation }: any) => {
           </View>
         </View>
 
-        <Text style={styles.price}>Total: €{(parseFloat(item.price.replace('€', '')) * quantity).toFixed(2)}</Text>
+        <Text style={styles.price}>Total: €{(+item.price * quantity).toFixed(2)}</Text>
 
         <Pressable style={styles.orderButton} onPress={handleAddToCart}>
           <Text style={styles.orderButtonText}>Add to Cart</Text>
         </Pressable>
+
+        <View style={styles.section}>
+          <Text style={styles.subheading}>Your Rating</Text>
+          <StarRating
+            rating={userRating}
+            onChange={setUserRating}
+            starSize={32}
+            color="#f1c40f"
+          />
+          <Text style={styles.ratingAverage}>Avg rating: {averageRating}/5</Text>
+        </View>
 
         <View style={styles.section}>
           <Text style={styles.subheading}>Leave a Comment</Text>
@@ -117,9 +166,29 @@ const MenuItemModal = ({ route, navigation }: any) => {
           <Pressable style={styles.commentButton} onPress={handleCommentSubmit}>
             <Text style={styles.commentButtonText}>Submit</Text>
           </Pressable>
-          {submittedComments.map((comment, index) => (
-            <Text key={index} style={styles.comment}>{comment}</Text>
-          ))}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.subheading}>Recent Comments</Text>
+          {reviews.length === 0 && (
+            <Text style={styles.comment}>No comments yet.</Text>
+          )}
+          {reviews.slice(0, 10).map((entry, index) => {
+            if (!entry) return null;
+            return (
+              <View key={index} style={styles.commentBox}>
+                <StarRating
+                  rating={entry.rating ?? 0}
+                  onChange={() => {}}
+                  starSize={18}
+                  enableSwiping={false}
+                  enableHalfStar={false}
+                  color="#f1c40f"
+                />
+                <Text style={styles.comment}>{entry.text || 'No comment provided.'}</Text>
+              </View>
+            );
+          })}
         </View>
       </View>
     </ScrollView>
@@ -217,28 +286,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   comment: {
+    color: '#333',
+    fontSize: 15,
+  },
+  commentBox: {
     backgroundColor: '#f4f4f4',
     padding: 10,
     borderRadius: 6,
-    marginVertical: 4,
-    color: '#333',
+    marginVertical: 6,
   },
-  tag: {
-    backgroundColor: '#eee',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginRight: 6,
-  },
-  tagText: {
-    fontSize: 12,
-    color: '#444',
-  },
-  tagsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginVertical: 8,
+  ratingAverage: {
+    marginTop: 4,
+    color: '#666',
+    fontSize: 14,
+    fontStyle: 'italic',
   },
 });
 

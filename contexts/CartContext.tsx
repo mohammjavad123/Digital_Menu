@@ -25,11 +25,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       if (existing) {
         return prev.map(i =>
           i.id === item.id && i.name === item.name
-            ? { ...i, quantity: (i.quantity || 1) + 1 }
+            ? { ...i, quantity: (i.quantity || 1) + (item.quantity || 1) }
             : i
         );
       } else {
-        return [...prev, { ...item, quantity: 1 }];
+        return [...prev, { ...item, quantity: item.quantity || 1 }];
       }
     });
   };
@@ -47,6 +47,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (!context) throw new Error('useCart must be used within a CartProvider');
+  if (!context) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
   return context;
 };
