@@ -17,7 +17,7 @@ import { useFavorites } from '../contexts/FavoritesContext';
 const backgroundImage = require('../assets/images/istockphoto-1400194993-612x612.jpg');
 
 // 🟨 Replace this with your machine's local IP if testing on device
-const API_URL = 'http://192.168.235.150:1337/api/menus?populate=image';
+const API_URL = 'http://10.70.67.45:1337/api/menus?populate=image';
 
 const MenuListScreen = ({ route, navigation }: any) => {
   const category = route?.params?.category;
@@ -26,31 +26,37 @@ const MenuListScreen = ({ route, navigation }: any) => {
   const [loading, setLoading] = useState(true);
 
   const fetchMenuItems = async () => {
-    try {
-      const res = await axios.get(API_URL);
-      const allItems = res.data.data;
+  try {
+    const res = await axios.get(API_URL);
+    const allItems = res.data.data;
 
-      const filteredItems = allItems
-        .filter((item: any) => item.category === category || item.category === category?.trim())
-        .map((item: any) => {
-          const imageUrl = item.image?.formats?.small?.url || item.image?.url;
-          return {
-            id: item.id.toString(),
-            name: item.name,
-            description: item.description,
-            price: `€${parseFloat(item.price).toFixed(2)}`,
-            category: item.category,
-            image: { uri: `http://10.70.8.71:1337${imageUrl}` },
-          };
-        });
+    const filteredItems = allItems
+      .map((item: any) => {
+        const attrs = item.attributes;
+        const imageData = attrs.image?.data;
+        const imageUrl = imageData?.attributes?.formats?.small?.url || imageData?.attributes?.url;
 
-      setItems(filteredItems);
-    } catch (err) {
-      console.error('Failed to fetch menu items:', err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+        return {
+          id: item.id.toString(),
+          name: attrs.name,
+          description: attrs.description || '',
+          price: `€${parseFloat(attrs.price).toFixed(2)}`,
+          category: attrs.category,
+          image: imageUrl
+            ? { uri: `http://10.70.67.45:1337${imageUrl}` }
+            : null,
+        };
+      })
+      .filter((item: any) => item.category === category || item.category === category?.trim());
+
+    setItems(filteredItems);
+  } catch (err: any) {
+    console.error('Failed to fetch menu items:', err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchMenuItems();

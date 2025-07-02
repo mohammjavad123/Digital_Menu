@@ -13,7 +13,7 @@ import StarRating from 'react-native-star-rating-widget';
 import { useCart } from '../contexts/CartContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 
-const SERVER_URL = 'http://192.168.235.150:1337';
+const SERVER_URL = 'http://10.70.67.45:1337';
 
 const MenuItemModal = ({ route, navigation }: any) => {
   const item = route?.params?.item;
@@ -33,7 +33,7 @@ const MenuItemModal = ({ route, navigation }: any) => {
     fetch(`${SERVER_URL}/api/reviews?filters[menu][id][$eq]=${item.id}&populate=*`)
       .then(res => res.json())
       .then(data => {
-        console.log("Fetched reviews:", data?.data);
+        console.log('Fetched reviews:', data?.data);
         setReviews(data?.data || []);
       })
       .catch(err => console.error('Failed to fetch reviews:', err));
@@ -49,7 +49,7 @@ const MenuItemModal = ({ route, navigation }: any) => {
 
     const menuId = item?.id || item?.menu?.id;
     if (!menuId) {
-      console.error("❌ Cannot submit review: Menu ID is missing.");
+      console.error('❌ Cannot submit review: Menu ID is missing.');
       return;
     }
 
@@ -73,11 +73,11 @@ const MenuItemModal = ({ route, navigation }: any) => {
       });
 
       const json = await res.json();
-      console.log("✅ Submit response:", json);
+      console.log('✅ Submit response:', json);
 
-      const newReview = json?.data || json;
-      if (newReview?.id) {
-        setReviews(prev => [newReview, ...prev]);
+      const newReviewData = json?.data;
+      if (newReviewData?.id && newReviewData?.attributes) {
+        setReviews(prev => [newReviewData, ...prev]);
         setUserComment('');
       } else {
         console.warn('⚠️ Unexpected response from Strapi:', json);
@@ -90,10 +90,8 @@ const MenuItemModal = ({ route, navigation }: any) => {
   const averageRating =
     reviews.length > 0
       ? (
-          reviews.reduce(
-            (sum, r) => sum + (r?.rating ?? 0),
-            0
-          ) / reviews.length
+          reviews.reduce((sum, r) => sum + (r?.attributes?.rating ?? 0), 0) /
+          reviews.length
         ).toFixed(1)
       : 'N/A';
 
@@ -137,7 +135,9 @@ const MenuItemModal = ({ route, navigation }: any) => {
           </View>
         </View>
 
-        <Text style={styles.price}>Total: €{(+item.price * quantity).toFixed(2)}</Text>
+        <Text style={styles.price}>
+          Total: €{(+item.price * quantity).toFixed(2)}
+        </Text>
 
         <Pressable style={styles.orderButton} onPress={handleAddToCart}>
           <Text style={styles.orderButtonText}>Add to Cart</Text>
@@ -174,18 +174,22 @@ const MenuItemModal = ({ route, navigation }: any) => {
             <Text style={styles.comment}>No comments yet.</Text>
           )}
           {reviews.slice(0, 10).map((entry, index) => {
-            if (!entry) return null;
+            const review = entry?.attributes;
+            if (!review) return null;
+
             return (
               <View key={index} style={styles.commentBox}>
                 <StarRating
-                  rating={entry.rating ?? 0}
+                  rating={review.rating ?? 0}
                   onChange={() => {}}
                   starSize={18}
                   enableSwiping={false}
                   enableHalfStar={false}
                   color="#f1c40f"
                 />
-                <Text style={styles.comment}>{entry.text || 'No comment provided.'}</Text>
+                <Text style={styles.comment}>
+                  {review.text || 'No comment provided.'}
+                </Text>
               </View>
             );
           })}
