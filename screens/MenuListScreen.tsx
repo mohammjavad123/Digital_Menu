@@ -15,7 +15,7 @@ import { useFavorites } from '../contexts/FavoritesContext';
 
 const backgroundImage = require('../assets/images/istockphoto-1400194993-612x612.jpg');
 
-const API_URL = 'http://192.168.174.1:1337/api/menus?populate=image';
+const API_URL = 'http://10.70.138.175:1337/api/menus?populate=image';
 
 const MenuListScreen = ({ route, navigation }: any) => {
   const category = route?.params?.category;
@@ -42,7 +42,7 @@ const MenuListScreen = ({ route, navigation }: any) => {
             price: `€${parseFloat(attrs.price).toFixed(2)}`,
             category: attrs.category,
             image: imageUrl
-              ? { uri: `http://192.168.174.1:1337${imageUrl}` }
+              ? { uri: `http://10.70.138.175:1337${imageUrl}` }
               : null,
           };
         })
