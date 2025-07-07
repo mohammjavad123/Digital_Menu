@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 
-const SERVER_URL = 'http://10.70.67.45:1337';
+const SERVER_URL = 'http://192.168.174.1:1337';
 
 const LoginScreen = ({ setUser }: any) => {
   const [identifier, setIdentifier] = useState('');

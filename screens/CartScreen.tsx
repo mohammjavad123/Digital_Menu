@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import Toast from 'react-native-root-toast';
 import { useCart } from '../contexts/CartContext';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const CartScreen = () => {
   const { cart, updateCart } = useCart();
@@ -67,7 +68,7 @@ const CartScreen = () => {
   );
 
   const renderItem = ({ item }: any) => (
-    <View style={styles.card}>
+  <SafeAreaView style={styles.container}>
       <Image source={item.image} style={styles.image} />
       <View style={styles.info}>
         <Text style={styles.name}>{item.name}</Text>
@@ -85,11 +86,11 @@ const CartScreen = () => {
       <Pressable onPress={() => handleRemove(item.id, item.name)} style={styles.removeButton}>
         <Text style={styles.removeButtonText}>×</Text>
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 
   return (
-    <View style={styles.container}>
+  <SafeAreaView style={styles.container}>
       <Text style={styles.header}>Your Orders</Text>
       <FlatList
         data={cart}
@@ -103,7 +104,7 @@ const CartScreen = () => {
           <Text style={styles.checkoutText}>Checkout</Text>
         </Pressable>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

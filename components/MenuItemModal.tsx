@@ -13,11 +13,13 @@ import StarRating from 'react-native-star-rating-widget';
 import { useCart } from '../contexts/CartContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 
-const SERVER_URL = 'http://10.70.67.45:1337';
+const SERVER_URL = 'http://192.168.174.1:1337';
 
 const MenuItemModal = ({ route, navigation }: any) => {
   const item = route?.params?.item;
+console.log(item)
   if (!item) return <Text>Item not found</Text>;
+const numericPrice = parseFloat(item.price.replace(/[^\d.]/g, '')) || 0;
 
   const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
@@ -87,20 +89,31 @@ const MenuItemModal = ({ route, navigation }: any) => {
     }
   };
 
-  const averageRating =
-    reviews.length > 0
-      ? (
-          reviews.reduce((sum, r) => sum + (r?.attributes?.rating ?? 0), 0) /
-          reviews.length
-        ).toFixed(1)
-      : 'N/A';
+  const extractRating = (r: any) =>
+  r?.attributes?.rating ??
+  r?.rating ?? // fallback for local added review
+  0;
+
+const averageRating =
+  reviews.length > 0
+    ? (
+        reviews.reduce((sum, r) => sum + extractRating(r), 0) / reviews.length
+      ).toFixed(1)
+    : 'N/A';
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Image
-        source={{ uri: `${SERVER_URL}${item?.image?.url}` }}
-        style={styles.image}
-      />
+ {item?.image?.uri ? (
+  <Image
+    source={{ uri: item.image.uri }}
+    style={styles.image}
+  />
+) : (
+  <View style={[styles.image, { justifyContent: 'center', alignItems: 'center' }]}>
+    <Text>No Image Available</Text>
+  </View>
+)}
+
 
       <View style={styles.content}>
         <View style={styles.headerRow}>
@@ -136,8 +149,8 @@ const MenuItemModal = ({ route, navigation }: any) => {
         </View>
 
         <Text style={styles.price}>
-          Total: €{(+item.price * quantity).toFixed(2)}
-        </Text>
+      Total: €{(numericPrice * quantity).toFixed(2)}
+    </Text>
 
         <Pressable style={styles.orderButton} onPress={handleAddToCart}>
           <Text style={styles.orderButtonText}>Add to Cart</Text>
@@ -151,7 +164,9 @@ const MenuItemModal = ({ route, navigation }: any) => {
             starSize={32}
             color="#f1c40f"
           />
-          <Text style={styles.ratingAverage}>Avg rating: {averageRating}/5</Text>
+          <Text style={styles.ratingAverage}>
+  Avg rating: {Number(averageRating).toFixed(1)} ({reviews.length} reviews)
+</Text>
         </View>
 
         <View style={styles.section}>

@@ -14,8 +14,10 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
+import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const SERVER_URL = 'http://10.70.67.45:1337';
+const SERVER_URL = 'http://192.168.174.1:1337';
 
 const ManageScreen = ({ user }: any) => {
   const [items, setItems] = useState<any[]>([]);
@@ -246,7 +248,8 @@ const ManageScreen = ({ user }: any) => {
   };
 
   return (
-    <View style={styles.container}>
+    
+   <SafeAreaView style={styles.container}>
       <Text style={styles.heading}>Manage Menu Items</Text>
 
       <Button title="➕ Add New Item" onPress={() => { resetForm(); setModalVisible(true); }} />
@@ -283,47 +286,55 @@ const ManageScreen = ({ user }: any) => {
         }}
       />
 
-      <Modal visible={modalVisible} animationType="slide">
-        <ScrollView contentContainerStyle={styles.modalContainer}>
-          <Text style={styles.modalHeading}>{editingItem ? 'Edit Item' : 'Add New Item'}</Text>
+<Modal visible={modalVisible} animationType="slide" presentationStyle="fullScreen">
+  <View style={styles.modalContainer}>
+    <TouchableOpacity style={styles.closeIcon} onPress={() => setModalVisible(false)}>
+<TouchableOpacity style={styles.closeIcon} onPress={() => setModalVisible(false)}>
+  <Ionicons name="close-outline" size={28} color="#333" />
+</TouchableOpacity>    </TouchableOpacity>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Item Name"
-            value={name}
-            onChangeText={setName}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Price"
-            value={price}
-            onChangeText={setPrice}
-            keyboardType="numeric"
-          />
-          <Picker selectedValue={category} onValueChange={setCategory} style={styles.input}>
-            <Picker.Item label="Select Category..." value="" />
-            <Picker.Item label="Lunch" value="Lunch" />
-            <Picker.Item label="Dinner" value="Dinner" />
-            <Picker.Item label="Coffee" value="Coffee" />
-            <Picker.Item label="Breakfast" value="Breakfast" />
-          </Picker>
+    <ScrollView contentContainerStyle={{ paddingTop: 20 }}>
+      <Text style={styles.modalHeading}>{editingItem ? 'Edit Item' : 'Add New Item'}</Text>
 
-          <Button title="Pick New Image" onPress={pickImage} />
-          {imageUri && (
-            <Image
-              source={{ uri: imageUri }}
-              style={{ height: 150, marginVertical: 10, borderRadius: 8 }}
-            />
-          )}
+      <TextInput
+        style={styles.input}
+        placeholder="Item Name"
+        value={name}
+        onChangeText={setName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Price"
+        value={price}
+        onChangeText={setPrice}
+        keyboardType="numeric"
+      />
+      <Picker selectedValue={category} onValueChange={setCategory} style={styles.input}>
+        <Picker.Item label="Select Category..." value="" />
+        <Picker.Item label="Lunch" value="Lunch" />
+        <Picker.Item label="Dinner" value="Dinner" />
+        <Picker.Item label="Coffee" value="Coffee" />
+        <Picker.Item label="Breakfast" value="Breakfast" />
+      </Picker>
 
-          <View style={{ marginTop: 10 }}>
-            <Button title={editingItem ? 'Save Changes' : 'Add Item'} onPress={handleAddOrUpdate} />
-            <View style={{ height: 10 }} />
-            <Button title="Cancel" onPress={() => setModalVisible(false)} color="red" />
-          </View>
-        </ScrollView>
-      </Modal>
-    </View>
+      <Button title="Pick New Image" onPress={pickImage} />
+      {imageUri && (
+        <Image
+          source={{ uri: imageUri }}
+          style={{ height: 150, marginVertical: 10, borderRadius: 8 }}
+        />
+      )}
+
+      <View style={{ marginTop: 10 }}>
+        <Button title={editingItem ? 'Save Changes' : 'Add Item'} onPress={handleAddOrUpdate} />
+        <View style={{ height: 10 }} />
+        <Button title="Cancel" onPress={() => setModalVisible(false)} color="red" />
+      </View>
+    </ScrollView>
+  </View>
+</Modal>
+
+    </SafeAreaView>
   );
 };
 
@@ -390,4 +401,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
   },
+  closeIcon: {
+  position: 'absolute',
+  top: 10,
+  right: 16,
+  zIndex: 1,
+},
+
 });

@@ -9,6 +9,7 @@ import CartScreen from './screens/CartScreen';
 import FavoritesScreen from './screens/FavoritesScreen';
 import LoginScreen from './screens/LoginScreen';
 import ManageScreen from './screens/ManageScreen';
+import MenuItemModal from './components/MenuItemModal'; // ✅ Add this
 
 import { CartProvider } from './contexts/CartContext';
 import { FavoritesProvider } from './contexts/FavoritesContext';
@@ -16,7 +17,6 @@ import { FavoritesProvider } from './contexts/FavoritesContext';
 const Tab = createBottomTabNavigator();
 const RootStack = createNativeStackNavigator();
 
-// Tabs component receives user + setUser
 const Tabs = ({ user, setUser }: any) => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
@@ -51,7 +51,7 @@ const Tabs = ({ user, setUser }: any) => (
 );
 
 export default function App() {
-  const [user, setUser] = useState(null); // 👤 user state
+  const [user, setUser] = useState(null);
 
   return (
     <CartProvider>
@@ -64,6 +64,15 @@ export default function App() {
             >
               {() => <Tabs user={user} setUser={setUser} />}
             </RootStack.Screen>
+
+            {/* ✅ Add global access to ItemDetail */}
+            <RootStack.Screen
+              name="ItemDetail"
+              component={MenuItemModal}
+              options={({ route }: any) => ({
+                title: route.params?.item?.name || 'Item Detail',
+              })}
+            />
           </RootStack.Navigator>
         </NavigationContainer>
       </FavoritesProvider>
