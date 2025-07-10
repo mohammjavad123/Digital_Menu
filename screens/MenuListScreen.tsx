@@ -43,7 +43,7 @@ const MenuListScreen = ({ route, navigation }: any) => {
             price: `€${parseFloat(attrs.price).toFixed(2)}`,
             category: attrs.category,
             image: imageUrl
-              ? { uri: `http://192.168.174.1:1337${imageUrl}` }
+              ? { uri: `${SERVER_URL}${imageUrl}` }
               : null,
           };
         })
