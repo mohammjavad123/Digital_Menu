@@ -16,8 +16,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SERVER_URL } from '../config'; // adjust path if needed
 
-const SERVER_URL = 'http://10.70.138.175:1337';
+// const SERVER_URL = 'http://10.70.138.175:1337';
 
 const ManageScreen = ({ user }: any) => {
   const [items, setItems] = useState<any[]>([]);

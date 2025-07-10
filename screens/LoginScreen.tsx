@@ -7,8 +7,9 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import { SERVER_URL } from '../config'; // adjust path if needed
 
-const SERVER_URL = 'http://10.70.138.175:1337';
+// const SERVER_URL = 'http://10.70.138.175:1337';
 
 const LoginScreen = ({ setUser }: any) => {
   const [identifier, setIdentifier] = useState('');

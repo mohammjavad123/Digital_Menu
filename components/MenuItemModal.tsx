@@ -12,8 +12,9 @@ import { Ionicons } from '@expo/vector-icons';
 import StarRating from 'react-native-star-rating-widget';
 import { useCart } from '../contexts/CartContext';
 import { useFavorites } from '../contexts/FavoritesContext';
+import { SERVER_URL } from '../config'; // adjust path if needed
 
-const SERVER_URL = 'http://10.70.138.175:1337';
+// const SERVER_URL = 'http://192.168.174.1:1337';
 
 const MenuItemModal = ({ route, navigation }: any) => {
   const item = route?.params?.item;
