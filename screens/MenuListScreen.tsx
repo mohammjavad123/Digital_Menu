@@ -17,7 +17,7 @@ import { SERVER_URL } from '../config'; // adjust path if needed
 const backgroundImage = require('../assets/images/istockphoto-1400194993-612x612.jpg');
 // const API_URL = 'http://192.168.174.1:1337/api/menus?populate=image';
 const API_URL = `${SERVER_URL}/api/menus?populate=image`;
-console.log('✅ SERVER_URL:', SERVER_URL);
+console.log('✅ SERVER_URL:', API_URL);
 const MenuListScreen = ({ route, navigation }: any) => {
   const category = route?.params?.category;
   const { toggleFavorite, isFavorite } = useFavorites();
@@ -43,14 +43,14 @@ const MenuListScreen = ({ route, navigation }: any) => {
             price: `€${parseFloat(attrs.price).toFixed(2)}`,
             category: attrs.category,
             image: imageUrl
-              ? { uri: `http://192.168.174.1:1337${imageUrl}` }
+              ?  { uri: `${SERVER_URL}${imageUrl}` }
               : null,
           };
         })
         .filter(
           (item: any) =>
             item.category === category || item.category === category?.trim()
-        );
+          );
 
       setItems(filteredItems);
     } catch (err: any) {
